@@ -1,20 +1,31 @@
 <template>
-  <div id="markov-chain">
-    <template v-if="controllerSettings">
-      <parser :settings="controllerSettings" :data="data" ref="activeStage"></parser>
-    </template>
+  <div id="markov-chain" :style="{ '--delay': controllerSettings ? controllerSettings.delay : 1000 }">
+    <transition v-if="controllerSettings" name="fade">
+      <parser ref="activeStage" v-if="!possibleStates"
+        :settings="controllerSettings"
+        :data="data"
+        @complete="possibleStates = $event"
+      ></parser>
+      <generator ref="activeStage" v-else
+        :settings="controllerSettings"
+        :data="data" :states="possibleStates"
+      ></generator>
+    </transition>
 
     <controller
+      :mode="possibleStates ? 'generator' : 'parser'"
       @settings="controllerSettings = $event"
       @restart="forwardInstr('restart')"
       @nextStep="forwardInstr('nextStep')"
       @stopAnimation="forwardInstr('stopAnimation')"
+      @clearData="clearData"
     ></controller>
   </div>
 </template>
 
 <script>
 import Parser from './Parser'
+import Generator from './Generator'
 import Controller from './Controller'
 
 export default {
@@ -24,28 +35,35 @@ export default {
   },
   components: {
     Parser,
+    Generator,
     Controller
   },
   data () {
     return {
-      controllerSettings: null
+      controllerSettings: null,
+      possibleStates: null
     }
   },
   methods: {
     forwardInstr (instr) {
       this.$refs.activeStage.handle(instr)
+    },
+    clearData () {
+      this.possibleStates = null
     }
   }
 }
 </script>
 
 <style>
-#current-name { display: inline-block; }
-#current-name .letter {
-  display: inline-block;
-
+#current-name .letter,
+#possible-states .state,
+.fade-enter-active, .fade-leave-active {
   transition: all calc(var(--delay) * 1ms);
 }
+
+#current-name { display: inline-block; }
+#current-name .letter { display: inline-block; }
 #current-name .letter.in-left-state {
   color: gold;
   font-weight: bold;
@@ -69,8 +87,11 @@ export default {
   display: inline-block;
   margin-right: 2em;
 }
+#possible-states .state.selected {
+  color: gold;
+  font-weight: bold;
+}
 
-.fade-enter-active, .fade-leave-active { transition: all calc(var(--delay) * 1ms); }
 .fade-enter, .fade-leave-to { opacity: 0; }
 .fade-absolute.fade-leave-active { position: absolute; }
 .fade-absolute-top.fade-enter { transform: translateX(-2em); }

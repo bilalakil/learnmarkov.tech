@@ -1,5 +1,5 @@
 <template>
-  <div :style="{ '--delay': settings.delay }">
+  <div id="parser">
     <transition v-if="currentName" appear name="fade">
       <div :key="currentName" class="fade-absolute fade-absolute-top">
         <div id="current-name" ref="currentName">
@@ -19,10 +19,18 @@
         </transition>
 
         <transition appear name="fade">
-          <div id="possible-states" :key="currentState" class="fade-absolute fade-absolute-right">
-            <transition-group appear name="fade" @before-enter="moveFromRightState" @after-enter="clearMove">
+          <div
+            id="possible-states"
+            :key="currentState"
+            class="fade-absolute fade-absolute-right"
+          >
+            <transition-group
+              appear name="fade"
+              @before-enter="moveFromRightState" @after-enter="clearMove"
+            >
               <template v-if="typeof stateTransitions[currentState] !== 'undefined'">
-                <span class="state fade-move" :key="state"
+                <span
+                  class="state fade-move" :key="state"
                   v-for="state in stateTransitions[currentState]"
                 >{{ state === '' ? '&lt;END&gt;' : state }}</span>
               </template>
@@ -145,23 +153,24 @@ export default {
       }
       this.stateCursor = -1
 
-      if (this.animated && this.nameCursor < this.data.length) {
+      if (this.nameCursor < this.data.length) {
         this.nextStep = this.nextState
-        this.next()
+      } else {
+        this.nextStep = this.complete
       }
+
+      this.next()
     },
     nextState () {
       this.stateCursor += 1
 
-      if (this.animated) {
-        if (this.stateCursor + this.settings.stateWidthLeft >= this.currentName.length) {
-          this.nextStep = this.nextName
-        } else {
-          this.nextStep = this.registerPossibleState
-        }
-
-        this.next()
+      if (this.stateCursor + this.settings.stateWidthLeft > this.currentName.length) {
+        this.nextStep = this.nextName
+      } else {
+        this.nextStep = this.registerPossibleState
       }
+
+      this.next()
     },
     registerPossibleState () {
       let ts = this.stateTransitions[this.currentState]
@@ -173,23 +182,30 @@ export default {
       const pos = this.stateCursor + this.settings.stateWidthLeft
       ts.push(this.currentName.slice(pos, pos + this.settings.stateWidthRight))
 
-      if (this.animated) {
-        if (this.stateCursor !== this.currentName.length - this.settings.stateWidthLeft) {
-          this.nextStep = this.nextState
-        } else {
-          this.nextStep = this.nextName
-        }
-
-        this.next()
+      if (this.stateCursor !== this.currentName.length - this.settings.stateWidthLeft) {
+        this.nextStep = this.nextState
+      } else {
+        this.nextStep = this.nextName
       }
+
+      this.next()
+    },
+    complete () {
+      this.nextStep = null
+
+      this.$emit('complete', this.stateTransitions)
     },
 
     indexInState (i, lor) {
-      const shift = this.stateCursor + (lor === 'left' ? 0 : this.settings.stateWidthRight)
+      const shift = this.stateCursor + (lor === 'left' ? 0 : this.settings.stateWidthLeft)
 
       return this.stateCursor !== -1 &&
         i >= shift &&
-        i < shift + this.settings.stateWidthLeft
+        i < shift + (
+          lor === 'left'
+            ? this.settings.stateWidthLeft
+            : this.settings.stateWidthRight
+        )
     },
     moveFromRightState (el) {
       const i = this.stateCursor + this.settings.stateWidthLeft
@@ -231,12 +247,8 @@ export default {
         this.nameCursor = 0
       }
 
-      while (this.nameCursor !== this.data.length) {
-        while (this.stateCursor !== this.currentName.length) {
-          this.nextState()
-          this.registerPossibleState()
-        }
-        this.nextName()
+      while (this.nextStep !== null) {
+        this.nextStep()
       }
     }
   },
@@ -248,6 +260,12 @@ export default {
       if (val) {
         this.next()
       }
+    },
+    'settings.stateWidthLeft' () {
+      this.restart()
+    },
+    'settings.stateWidthRight' () {
+      this.restart()
     }
   }
 }
