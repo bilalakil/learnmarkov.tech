@@ -2,13 +2,13 @@
   <div id="app">
     <transition appear name="fade" mode="out-in">
       <div v-if="data === null">Loading...</div>
-      <trainer v-else :data="data"></trainer>
+      <markovChain v-else :data="data"></markovChain>
     </transition>
   </div>
 </template>
 
 <script>
-import Trainer from './components/Trainer'
+import MarkovChain from './components/MarkovChain'
 
 export default {
   name: 'app',
@@ -18,7 +18,7 @@ export default {
     }
   },
   components: {
-    Trainer
+    MarkovChain
   },
   methods: {
     loadNames (path) {
@@ -44,12 +44,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 1s
-}
-.fade-enter, .fade-leave-to {
-  opacity: 0
-}
-</style>

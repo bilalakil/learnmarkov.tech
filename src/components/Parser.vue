@@ -1,5 +1,5 @@
 <template>
-  <div :style="{ '--delay': delay }">
+  <div :style="{ '--delay': settings.delay }">
     <transition v-if="currentName" appear name="fade">
       <div :key="currentName" class="fade-absolute fade-absolute-top">
         <div id="current-name" ref="currentName">
@@ -32,25 +32,6 @@
         </transition>
       </div>
     </transition>
-    <div id="control">
-      <label>
-        Speed:
-        <input type="range" v-model.number="speed" min="0" :max="SPEEDS.length - 1"/>
-      </label>
-      <label>
-        State width (left):
-        <input type="number" v-model.number="stateWidthLeft"/>
-      </label>
-      <label>
-        State width (right):
-        <input type="number" v-model.number="stateWidthRight"/>
-      </label>
-      <button @click="restart">Restart</button>
-      <button v-if="playing" @click="playing = false">Pause</button>
-      <button v-else @click="playing = true">Play</button>
-      <button @click="nextStep">Step</button>
-      <button @click="finishAsap">On to name generation!</button>
-    </div>
   </div>
 </template>
 
@@ -75,34 +56,24 @@ const stopWords = [
 const stopWordsRe = RegExp(`( ?\\(?(${stopWords.join('|')})\\)?)+$`)
 
 export default {
-  name: 'trainer',
+  name: 'parser',
   props: {
-    data: Array
+    data: Array,
+    settings: Object
   },
   data () {
     return {
       nextStep: this.nextName,
 
       animated: true,
-      playing: true,
-
-      speed: 1,
-      stateWidthLeft: 2,
-      stateWidthRight: 2,
 
       stateTransitions: {},
 
       nameCursor: -1,
-      stateCursor: -1,
-
-      SPEEDS: [2000, 1000, 500, 250, 0]
+      stateCursor: -1
     }
   },
   computed: {
-    delay () {
-      return this.SPEEDS[this.speed]
-    },
-
     currentName () {
       if (this.nameCursor !== -1 && this.nameCursor < this.data.length) {
         let name = this.data[this.nameCursor]
@@ -128,9 +99,9 @@ export default {
     currentState () {
       if (this.currentName &&
           this.stateCursor !== -1 &&
-          this.stateCursor + this.stateWidthLeft <= this.currentName.length
+          this.stateCursor + this.settings.stateWidthLeft <= this.currentName.length
       ) {
-        return this.currentName.slice(this.stateCursor, this.stateCursor + this.stateWidthLeft)
+        return this.currentName.slice(this.stateCursor, this.stateCursor + this.settings.stateWidthLeft)
       }
     }
   },
@@ -138,14 +109,14 @@ export default {
     next (delayMult) {
       const self = this
       const thisLoop = ++curLoop
-      const delayUntil = performance.now() + this.delay * (
+      const delayUntil = performance.now() + this.settings.delay * (
         typeof delayMult === 'undefined'
           ? 1
           : delayMult
       )
 
       const loop = (now) => {
-        if (!self.playing || !self.animated) {
+        if (!self.settings.playing || !self.animated) {
           return
         }
 
@@ -168,7 +139,7 @@ export default {
         this.nameCursor += 1
 
         if (this.nameCursor >= this.data.length ||
-            this.currentName.length >= this.stateWidthLeft) {
+            this.currentName.length >= this.settings.stateWidthLeft) {
           break
         }
       }
@@ -183,7 +154,12 @@ export default {
       this.stateCursor += 1
 
       if (this.animated) {
-        this.nextStep = this.registerPossibleState
+        if (this.stateCursor + this.settings.stateWidthLeft >= this.currentName.length) {
+          this.nextStep = this.nextName
+        } else {
+          this.nextStep = this.registerPossibleState
+        }
+
         this.next()
       }
     },
@@ -194,11 +170,11 @@ export default {
         ts = this.stateTransitions[this.currentState]
       }
 
-      const pos = this.stateCursor + this.stateWidthLeft
-      ts.push(this.currentName.slice(pos, pos + this.stateWidthRight))
+      const pos = this.stateCursor + this.settings.stateWidthLeft
+      ts.push(this.currentName.slice(pos, pos + this.settings.stateWidthRight))
 
       if (this.animated) {
-        if (this.stateCursor !== this.currentName.length - this.stateWidthLeft) {
+        if (this.stateCursor !== this.currentName.length - this.settings.stateWidthLeft) {
           this.nextStep = this.nextState
         } else {
           this.nextStep = this.nextName
@@ -209,14 +185,14 @@ export default {
     },
 
     indexInState (i, lor) {
-      const shift = this.stateCursor + (lor === 'left' ? 0 : this.stateWidthRight)
+      const shift = this.stateCursor + (lor === 'left' ? 0 : this.settings.stateWidthRight)
 
       return this.stateCursor !== -1 &&
         i >= shift &&
-        i < shift + this.stateWidthLeft
+        i < shift + this.settings.stateWidthLeft
     },
     moveFromRightState (el) {
-      const i = this.stateCursor + this.stateWidthLeft
+      const i = this.stateCursor + this.settings.stateWidthLeft
       const letter = this.$refs.currentName.querySelectorAll('.letter')[i]
 
       const srcPos = letter.getBoundingClientRect()
@@ -230,6 +206,11 @@ export default {
       el.style.removeProperty('--moveY')
     },
 
+    handle (instr) {
+      if (typeof this[instr] === 'function') {
+        this[instr]()
+      }
+    },
     restart () {
       this.nextStep = this.nextName
 
@@ -243,7 +224,7 @@ export default {
 
       this.next()
     },
-    finishAsap () {
+    stopAnimation () {
       this.animated = false
 
       if (this.nameCursor === -1) {
@@ -263,7 +244,7 @@ export default {
     this.next()
   },
   watch: {
-    playing (val) {
+    'settings.playing' (val) {
       if (val) {
         this.next()
       }
@@ -271,45 +252,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-#current-name { display: inline-block; }
-#current-name .letter {
-  display: inline-block;
-
-  transition: all calc(var(--delay) * 1ms);
-}
-#current-name .letter.in-left-state {
-  color: gold;
-  font-weight: bold;
-}
-#current-name .letter.in-right-state {
-  color: blue;
-  font-weight: bold;
-}
-#current-name .letter.not-in-left-state + .letter.in-left-state { margin-left: 2em; }
-#current-name .letter.in-left-state + .letter.not-in-left-state { margin-left: 2em; }
-#current-name .letter.in-right-state + .letter.not-in-right-state { margin-left: 1em; }
-
-#stopped-name {
-  display: inline-block;
-  margin-left: 4em;
-
-  opacity: 0.5;
-}
-
-#possible-states .state {
-  display: inline-block;
-  margin-right: 2em;
-}
-
-.fade-enter-active, .fade-leave-active { transition: all calc(var(--delay) * 1ms); }
-.fade-enter, .fade-leave-to { opacity: 0; }
-.fade-absolute.fade-leave-active { position: absolute; }
-.fade-absolute-top.fade-enter { transform: translateX(-2em); }
-.fade-absolute-top.fade-leave-to { transform: translateX(2em); }
-.fade-absolute-right.fade-enter { transform: translateX(-4em); }
-.fade-absolute-right.fade-leave-to { transform: translateX(4em); }
-.fade-move { transform: translate(calc(var(--moveX) * 1px), calc(var(--moveY) * 1px)); }
-.fade-move.fade-enter-to { transform: translate(0, 0); }
-</style>
