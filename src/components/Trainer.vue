@@ -35,7 +35,7 @@
     <div id="control">
       <label>
         Speed:
-        <input type="range" v-model.number="speed" min="1" v-bind:max="100"/>
+        <input type="range" v-model.number="speed" min="0" :max="SPEEDS.length - 1"/>
       </label>
       <label>
         State width (left):
@@ -46,14 +46,19 @@
         <input type="number" v-model.number="stateWidthRight"/>
       </label>
       <button @click="restart">Restart</button>
+      <button v-if="playing" @click="playing = false">Pause</button>
+      <button v-else @click="playing = true">Play</button>
+      <button @click="nextStep">Step</button>
+      <button @click="finishAsap">On to name generation!</button>
     </div>
   </div>
 </template>
 
 <script>
-const animSpeed = 5000
+let curLoop = 0
 
 const stopWords = [
+  'PARTNERSHIP',
   'HOLDINGS',
   'PTY',
   'LTD',
@@ -62,7 +67,8 @@ const stopWords = [
   'AUSTRALIA',
   'CORPORATION',
   'AUSTRALASIA',
-  'ASIA PACIFIC',
+  'ASIA',
+  'PACIFIC',
   'COMPANY',
   'INTERNATIONAL'
 ]
@@ -75,21 +81,26 @@ export default {
   },
   data () {
     return {
-      speed: 5,
       nextStep: this.nextName,
 
+      animated: true,
+      playing: true,
+
+      speed: 1,
       stateWidthLeft: 2,
       stateWidthRight: 2,
 
       stateTransitions: {},
 
       nameCursor: -1,
-      stateCursor: -1
+      stateCursor: -1,
+
+      SPEEDS: [2000, 1000, 500, 250, 0]
     }
   },
   computed: {
     delay () {
-      return animSpeed / this.speed
+      return this.SPEEDS[this.speed]
     },
 
     currentName () {
@@ -125,11 +136,31 @@ export default {
   },
   methods: {
     next (delayMult) {
-      delayMult = typeof delayMult === 'undefined'
-        ? 1
-        : delayMult
+      const self = this
+      const thisLoop = ++curLoop
+      const delayUntil = performance.now() + this.delay * (
+        typeof delayMult === 'undefined'
+          ? 1
+          : delayMult
+      )
 
-      setTimeout(this.nextStep, this.delay * delayMult)
+      const loop = (now) => {
+        if (!self.playing || !self.animated) {
+          return
+        }
+
+        if (thisLoop !== curLoop) {
+          return
+        }
+
+        if (now >= delayUntil) {
+          self.nextStep()
+        } else {
+          requestAnimationFrame(loop)
+        }
+      }
+
+      requestAnimationFrame(loop)
     },
 
     nextName () {
@@ -137,14 +168,13 @@ export default {
         this.nameCursor += 1
 
         if (this.nameCursor >= this.data.length ||
-            this.currentName.length >= this.stateWidthLeft
-        ) {
+            this.currentName.length >= this.stateWidthLeft) {
           break
         }
       }
       this.stateCursor = -1
 
-      if (this.nameCursor < this.data.length) {
+      if (this.animated && this.nameCursor < this.data.length) {
         this.nextStep = this.nextState
         this.next()
       }
@@ -152,8 +182,10 @@ export default {
     nextState () {
       this.stateCursor += 1
 
-      this.nextStep = this.registerPossibleState
-      this.next()
+      if (this.animated) {
+        this.nextStep = this.registerPossibleState
+        this.next()
+      }
     },
     registerPossibleState () {
       let ts = this.stateTransitions[this.currentState]
@@ -165,13 +197,15 @@ export default {
       const pos = this.stateCursor + this.stateWidthLeft
       ts.push(this.currentName.slice(pos, pos + this.stateWidthRight))
 
-      if (this.stateCursor !== this.currentName.length - this.stateWidthLeft) {
-        this.nextStep = this.nextState
-      } else {
-        this.nextStep = this.nextName
-      }
+      if (this.animated) {
+        if (this.stateCursor !== this.currentName.length - this.stateWidthLeft) {
+          this.nextStep = this.nextState
+        } else {
+          this.nextStep = this.nextName
+        }
 
-      this.next()
+        this.next()
+      }
     },
 
     indexInState (i, lor) {
@@ -199,16 +233,41 @@ export default {
     restart () {
       this.nextStep = this.nextName
 
+      this.animated = true
+      this.playing = true
+
       this.stateTransitions = {}
 
       this.nameCursor = -1
       this.stateCursor = -1
 
-      this.next(1.5)
+      this.next()
+    },
+    finishAsap () {
+      this.animated = false
+
+      if (this.nameCursor === -1) {
+        this.nameCursor = 0
+      }
+
+      while (this.nameCursor !== this.data.length) {
+        while (this.stateCursor !== this.currentName.length) {
+          this.nextState()
+          this.registerPossibleState()
+        }
+        this.nextName()
+      }
     }
   },
   mounted () {
-    this.next(1.5)
+    this.next()
+  },
+  watch: {
+    playing (val) {
+      if (val) {
+        this.next()
+      }
+    }
   }
 }
 </script>
