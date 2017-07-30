@@ -1,5 +1,6 @@
 <template>
   <div id="markov-chain" :style="{ '--delay': controllerSettings ? controllerSettings.delay : 1000 }">
+    <div className="padder"></div>
     <transition v-if="controllerSettings" name="fade">
       <parser ref="activeStage" v-if="!possibleStates"
         :settings="controllerSettings"
@@ -11,7 +12,6 @@
         :data="data" :states="possibleStates"
       ></generator>
     </transition>
-
     <controller
       :mode="possibleStates ? 'generator' : 'parser'"
       @settings="controllerSettings = $event"
@@ -56,6 +56,13 @@ export default {
 </script>
 
 <style>
+#markov-chain {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
 #current-name .letter,
 #possible-states .state,
 .fade-enter-active, .fade-leave-active {
