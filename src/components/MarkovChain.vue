@@ -1,7 +1,7 @@
 <template>
   <div id="markov-chain" :style="{ '--delay': controllerSettings ? controllerSettings.delay : 1000 }">
     <div className="padder"></div>
-    <transition v-if="controllerSettings" name="fade">
+    <transition v-if="controllerSettings">
       <parser ref="activeStage" v-if="!states"
         :settings="controllerSettings"
         :data="data"
@@ -69,7 +69,7 @@ export default {
   transition: font-size 1s;
 }
 
-#current-name.finished {
+#current-name.finished .word {
   font-size: 28px;
 }
 
@@ -85,9 +85,10 @@ export default {
   overflow: hidden;
 }
 
-.current-word .letter,
+.word,
+.word .letter,
 #possible-states .state,
-.fade-enter-active, .fade-leave-active {
+.v-enter-active, .v-leave-active {
   transition: all calc(var(--delay) * 1ms);
 }
 
@@ -126,11 +127,11 @@ export default {
   width: 100%;
 }
 
-.fade-enter, .fade-leave-to { opacity: 0; }
-.fade-absolute-top.fade-enter { transform: translateX(-2em); }
-.fade-absolute-top.fade-leave-to { transform: translateX(2em); }
-.fade-absolute-right.fade-enter { transform: translateX(-4em); }
-.fade-absolute-right.fade-leave-to { transform: translateX(4em); }
+.v-enter, .v-leave-to { opacity: 0; }
+.fade-absolute-top.v-enter { transform: translateX(-2em); }
+.fade-absolute-top.v-leave-to { transform: translateX(2em); }
+.fade-absolute-right.v-enter { transform: translateX(-4em); }
+.fade-absolute-right.v-leave-to { transform: translateX(4em); }
 .fade-move { transform: translate(calc(var(--moveX) * 1px), calc(var(--moveY) * 1px)); }
-.fade-move.fade-enter-to { transform: translate(0, 0); }
+.fade-move.v-enter-to { transform: translate(0, 0); }
 </style>

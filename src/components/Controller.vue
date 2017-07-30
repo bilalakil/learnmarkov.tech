@@ -18,7 +18,7 @@
         </button>
       </div>
     </div>
-    
+
     <div class="col">
       <transition name="fade">
         <div class="row" v-if="mode === 'parser'">
@@ -33,7 +33,7 @@
         </div>
       </transition>
     </div>
-    
+
     <transition name="fade">
       <div v-if="mode === 'parser'" class="col btn-column">
         <button class="btn btn-primary" @click="$emit('stopAnimation')">On to name generation!</button>
@@ -62,8 +62,8 @@ export default {
       DELAYS: [2000, 1000, 500, 250, 0],
       playing: true,
 
-      stateWidthLeft: 2,
-      stateWidthRight: 2,
+      stateWidthLeft: 3,
+      stateWidthRight: 3,
 
       strictStarts: true
     }

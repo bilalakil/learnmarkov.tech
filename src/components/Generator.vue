@@ -1,29 +1,29 @@
 <template>
   <div id="generator" class="fade-absolute-container">
-    <transition v-if="currentName" appear name="fade">
+    <transition v-if="currentWord" appear>
       <div class="fade-absolute fade-absolute-top">
-        <div 
+        <div
           id="current-name"
           :class="{ 'finished': complete }"
         >
-          <transition-group name="fade"
-            @before-enter="moveToRightState" @after-enter="clearMove"
-          >
-            <span v-for="(letter, i) in currentName"
-              :key="i" :data-key="i"
-              class="letter fade-move"
-              :class="{ 'in-left-state': indexInState(i),
-                        'not-in-left-state': !indexInState(i) }"
-            >{{ letter }}</span>
-            <span key="placeholder"
-              v-if="!complete"
-              class="letter not-in-left-state in-right-state"
-              ref="nextStatePlaceholder"
-            >?</span>
-          </transition-group>
+          <span v-for="word in wordsInCurrentName" class="word">
+            <transition-group>
+              <span v-for="(letter, i) in word"
+                :key="i" :data-key="i"
+                class="letter fade-move"
+                :class="{ 'in-left-state': indexInState(i),
+                          'not-in-left-state': !indexInState(i) }"
+              >{{ letter }}</span>
+              <span key="placeholder"
+                v-if="!complete"
+                class="letter not-in-left-state in-right-state"
+                ref="nextStatePlaceholder"
+              >?</span>
+            </transition-group>
+          </span>
         </div>
         <div id="possible-states" class="fade-absolute-container">
-          <transition appear name="fade">
+          <transition appear>
             <div :key="currentState" class="fade-absolute fade-absolute-right">
               <span
               class="state" :key="state"
@@ -42,8 +42,23 @@
 <script>
 let curLoop = 0
 
-// const numWords = () => { Math.floor(Math.random() * 3) + 1 }
-// const wordLength = () => { Math.floor(Math.random() * 7) + 4 }
+const randNumWords = () => Math.floor(Math.random() * 3) + 1
+const randWordLength = () => Math.floor(Math.random() * 7) + 4
+
+const getDefaultData = function () {
+  return {
+    nextStep: this.startWord,
+
+    targetNumWords: null,
+    targetWordLength: null,
+
+    wordsInCurrentName: [],
+    currentStateIndex: -1,
+    stateLengthLeft: null,
+    nextState: null,
+    complete: false
+  }
+}
 
 export default {
   name: 'generator',
@@ -52,24 +67,19 @@ export default {
     states: Object,
     settings: Object
   },
-  data () {
-    return {
-      nextStep: this.startName,
-
-      currentName: null,
-      currentStateIndex: -1,
-      stateLengthLeft: null,
-      nextState: null,
-      complete: false
-    }
-  },
+  data: getDefaultData,
   computed: {
+    currentWord () {
+      if (this.wordsInCurrentName.length !== 0) {
+        return this.wordsInCurrentName[this.wordsInCurrentName.length - 1]
+      }
+    },
     currentState () {
-      if (this.currentStateIndex === -1 || !this.currentName || !this.stateLengthLeft) {
+      if (this.currentStateIndex === -1 || !this.currentWord || !this.stateLengthLeft) {
         return
       }
 
-      return this.currentName.slice(this.currentStateIndex, this.currentStateIndex + this.stateLengthLeft)
+      return this.currentWord.slice(this.currentStateIndex, this.currentStateIndex + this.stateLengthLeft)
     }
   },
   methods: {
@@ -101,20 +111,38 @@ export default {
       requestAnimationFrame(loop)
     },
 
-    startName () {
+    startWord () {
+      if (this.wordsInCurrentName.length === 0) {
+        this.targetNumWords = randNumWords()
+      } else if (this.wordsInCurrentName.length === this.targetNumWords) {
+        this.finish()
+        return
+      }
+
       const states = this.settings.strictStarts
         ? this.states.starts
         : Object.keys(this.states.transitions)
 
-      this.currentName = states[Math.floor(Math.random() * states.length)]
+      this.targetWordLength = randWordLength()
+
+      this.wordsInCurrentName.push(states[Math.floor(Math.random() * states.length)])
       this.currentStateIndex = 0
-      this.stateLengthLeft = this.currentName.length
+      this.stateLengthLeft = this.currentWord.length
 
       this.nextStep = this.selectNextState
       this.next()
     },
     selectNextState () {
       const connectingStates = this.states.transitions[this.currentState]
+
+      if (this.currentWord.length >= this.targetWordLength) {
+        this.startWord()
+        return
+      }
+      if (!connectingStates) {
+        this.finish()
+        return
+      }
 
       this.nextState = Math.floor(Math.random() * connectingStates.length)
 
@@ -126,23 +154,22 @@ export default {
 
       this.nextState = null
 
-      if (next !== '') {
-        this.currentName += next
+      this.wordsInCurrentName.splice(this.wordsInCurrentName.length - 1, 1, this.currentWord + next)
 
-        this.nextStep = this.advanceCurrentState
-        this.next()
-      } else {
-        this.currentStateIndex = -1
-        this.complete = true
-
-        this.nextStep = this.restart
-      }
+      this.nextStep = this.advanceCurrentState
+      this.next()
     },
     advanceCurrentState () {
-      this.currentStateIndex = this.currentName.length - this.stateLengthLeft
+      this.currentStateIndex = this.currentWord.length - this.stateLengthLeft
 
       this.nextStep = this.selectNextState
       this.next()
+    },
+    finish () {
+      this.currentStateIndex = -1
+      this.complete = true
+
+      this.nextStep = this.restart
     },
 
     indexInState (i) {
@@ -174,13 +201,10 @@ export default {
       }
     },
     restart () {
-      this.nextStep = this.startName
-
-      this.currentName = null
-      this.currentStateIndex = -1
-      this.stateLengthLeft = null
-      this.nextState = null
-      this.complete = false
+      const defaults = getDefaultData.call(this)
+      for (let k in defaults) {
+        this.$set(this, k, defaults[k])
+      }
 
       this.next()
     }

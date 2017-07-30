@@ -11,10 +11,8 @@
           </div>
         </div>
         <div class="inner cover" id="main">
-          <transition appear name="fade" mode="out-in">
-            <div v-if="data == null" class="loading"><i class="fa fa-spinner" aria-hidden="true"></i></div>
-            <markovChain v-else :data="data"></markovChain>
-          </transition>
+          <div v-if="data == null" class="loading"><i class="fa fa-spinner" aria-hidden="true"></i></div>
+          <markovChain v-else :data="data"></markovChain>
         </div>
         <div class="mastfoot">
           <div class="inner">
@@ -28,7 +26,7 @@
 </template>
 
 <script>
-import { shuffle } from 'lodash'
+// import { shuffle } from 'lodash'
 import MarkovChain from './components/MarkovChain'
 import HelpModal from './components/HelpModal'
 
@@ -53,7 +51,8 @@ export default {
       req.open('GET', path)
       req.onload = () => {
         if (req.status === 200) {
-          self.data = shuffle(req.response.split('\n'))
+          // self.data = shuffle(req.response.split('\n'))
+          self.data = req.response.split('\n')
         } else {
           err()
         }
@@ -69,7 +68,7 @@ export default {
 </script>
 
 <style>
-  /*
+ /*
  * Globals
  */
 
@@ -234,7 +233,7 @@ body {
   font-size: 48px;
   animation: spin 1.5s linear infinite;
 
-  
+
 }
 
 @-moz-keyframes spin {
