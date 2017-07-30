@@ -75,7 +75,7 @@ export default {
   position: relative;
 }
 
-#possible-states.generator {
+#generator #possible-states {
   font-size: 16px;
   overflow: hidden;
 }
@@ -114,8 +114,14 @@ export default {
   font-size: 20px;
 }
 
+.fade-absolute-container { position: relative; }
+.fade-absolute.fade-leave-active {
+  position: absolute;
+
+  width: 100%;
+}
+
 .fade-enter, .fade-leave-to { opacity: 0; }
-.fade-absolute.fade-leave-active { position: absolute; }
 .fade-absolute-top.fade-enter { transform: translateX(-2em); }
 .fade-absolute-top.fade-leave-to { transform: translateX(2em); }
 .fade-absolute-right.fade-enter { transform: translateX(-4em); }
