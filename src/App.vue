@@ -28,6 +28,7 @@
 </template>
 
 <script>
+import { shuffle } from 'lodash'
 import MarkovChain from './components/MarkovChain'
 import HelpModal from './components/HelpModal'
 
@@ -52,7 +53,7 @@ export default {
       req.open('GET', path)
       req.onload = () => {
         if (req.status === 200) {
-          self.data = req.response.split('\n')
+          self.data = shuffle(req.response.split('\n'))
         } else {
           err()
         }
