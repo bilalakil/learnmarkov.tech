@@ -18,8 +18,9 @@
         </button>
       </div>
     </div>
-    <transition name="fade">
-      <div class="col">
+    
+    <div class="col">
+      <transition name="fade">
         <div class="row" v-if="mode === 'parser'">
           <div class="col">
             <label class="control-label" for="stateWidthLeft">Left</label>
@@ -30,18 +31,21 @@
             <input class="form-control" type="number" name="stateWidthRight" v-model.number="stateWidthRight" min="1" max="6"/>
           </div>
         </div>
-      </div>
-    </transition>
+      </transition>
+    </div>
+    
     <transition name="fade">
-      <div class="col btn-column">
-        <button v-if="mode === 'parser'" class="btn btn-primary" @click="$emit('stopAnimation')">On to name generation!</button>
-        <button v-else class="btn btn-default" @click="$emit('clearData')">Back to the parser!</button>
+      <div v-if="mode === 'parser'" class="col btn-column">
+        <button class="btn btn-primary" @click="$emit('stopAnimation')">On to name generation!</button>
+      </div>
+      <div v-else class="col btn-column">
+        <button class="btn btn-default" @click="$emit('clearData')">Back to the parser!</button>
       </div>
     </transition>
 
     <label>
       <input type="checkbox" v-model="strictStarts"/>
-      <abbr title="Is this how it works?">Strict start</abbr>
+      <abbr title="Only generate words with letters that generally start words">Strict start</abbr>
     </label>
   </div>
 </template>

@@ -6,9 +6,7 @@
           <div class="inner">
             <h3 class="masthead-brand">LearnMarkov.tech</h3>
             <nav class="nav nav-masthead">
-              <a class="nav-link active" href="#">Home</a>
-              <a class="nav-link" href="#">Features</a>
-              <a class="nav-link" href="#">Contact</a>
+              <a class="nav-link" href="#" data-toggle="modal" data-target="#helpModal">About</a>
             </nav>
           </div>
         </div>
@@ -25,11 +23,13 @@
         </div>
       </div>
     </div>
+    <helpModal></helpModal>
   </div>
 </template>
 
 <script>
 import MarkovChain from './components/MarkovChain'
+import HelpModal from './components/HelpModal'
 
 export default {
   name: 'app',
@@ -39,7 +39,8 @@ export default {
     }
   },
   components: {
-    MarkovChain
+    MarkovChain,
+    HelpModal
   },
   methods: {
     loadNames (path) {
