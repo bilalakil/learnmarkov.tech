@@ -19,21 +19,18 @@
             >?</span>
           </transition-group>
         </div>
-
-        <transition appear name="fade">
-          <div
-            id="possible-states"
-            :key="currentState"
-            class="fade-absolute fade-absolute-right"
-          >
-            <span
-              class="state" :key="state"
-              :class="{ selected: i === nextState }"
-              v-for="(state, i) in states[currentState]"
-              :ref="i === nextState ? 'selectedState' : null"
-            >{{ state === '' ? '&lt;END&gt;' : state }}</span>
-          </div>
-        </transition>
+        <div id="possible-states" class="generator">
+          <transition appear name="fade">
+            <div :key="currentState" class="fade-absolute fade-absolute-right">
+              <span
+                class="state" :key="state"
+                :class="{ selected: i === nextState }"
+                v-for="(state, i) in states[currentState]"
+                :ref="i === nextState ? 'selectedState' : null"
+              >{{ state === '' ? '&lt;END&gt;' : state }}</span>
+            </div>
+          </transition>
+        </div>
       </div>
     </transition>
   </div>

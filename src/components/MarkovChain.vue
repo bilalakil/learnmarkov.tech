@@ -63,6 +63,23 @@ export default {
   height: 100%;
 }
 
+#current-name, #stopped-name, #possible-states {
+  font-family: 'Droid Sans Mono', monospace;
+  font-size: 20px;
+}
+
+#possible-states {
+  font-size: 20px;
+  margin-top: 20px;
+  max-height: 50vh;
+  position: relative;
+}
+
+#possible-states.generator {
+  font-size: 16px;
+  overflow: hidden;
+}
+
 #current-name .letter,
 #possible-states .state,
 .fade-enter-active, .fade-leave-active {
@@ -72,11 +89,11 @@ export default {
 #current-name { display: inline-block; }
 #current-name .letter { display: inline-block; }
 #current-name .letter.in-left-state {
-  color: gold;
+  color: #edf177;
   font-weight: bold;
 }
 #current-name .letter.in-right-state {
-  color: blue;
+  color: #90c9f5;
   font-weight: bold;
 }
 #current-name .letter.not-in-left-state + .letter.in-left-state { margin-left: 2em; }
@@ -95,8 +112,9 @@ export default {
   margin-right: 2em;
 }
 #possible-states .state.selected {
-  color: gold;
+  color: #fd8383;
   font-weight: bold;
+  font-size: 20px;
 }
 
 .fade-enter, .fade-leave-to { opacity: 0; }
