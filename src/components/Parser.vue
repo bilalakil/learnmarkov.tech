@@ -1,5 +1,5 @@
 <template>
-  <div id="parser">
+  <div id="parser" class="fade-absolute-container">
     <transition v-if="currentWord" appear name="fade">
       <div :key="nameCursor" class="fade-absolute fade-absolute-top">
         <span
@@ -22,7 +22,7 @@
             {{ word }}
           </template>
         </span>
-        <div id="possible-states">
+        <div id="possible-states" class="fade-absolute-container">
           <transition appear name="fade">
             <div
               :key="currentState"

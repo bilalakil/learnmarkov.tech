@@ -1,5 +1,5 @@
 <template>
-  <div id="generator">
+  <div id="generator" class="fade-absolute-container">
     <transition v-if="currentName" appear name="fade">
       <div class="fade-absolute fade-absolute-top">
         <div 
@@ -22,7 +22,7 @@
             >?</span>
           </transition-group>
         </div>
-        <div id="possible-states" class="generator">
+        <div id="possible-states" class="fade-absolute-container">
           <transition appear name="fade">
             <div :key="currentState" class="fade-absolute fade-absolute-right">
               <span
