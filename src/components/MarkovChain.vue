@@ -2,18 +2,18 @@
   <div id="markov-chain" :style="{ '--delay': controllerSettings ? controllerSettings.delay : 1000 }">
     <div className="padder"></div>
     <transition v-if="controllerSettings" name="fade">
-      <parser ref="activeStage" v-if="!possibleStates"
+      <parser ref="activeStage" v-if="!states"
         :settings="controllerSettings"
         :data="data"
-        @complete="possibleStates = $event"
+        @complete="states = $event"
       ></parser>
       <generator ref="activeStage" v-else
         :settings="controllerSettings"
-        :data="data" :states="possibleStates"
+        :data="data" :states="states"
       ></generator>
     </transition>
     <controller
-      :mode="possibleStates ? 'generator' : 'parser'"
+      :mode="states ? 'generator' : 'parser'"
       @settings="controllerSettings = $event"
       @restart="forwardInstr('restart')"
       @nextStep="forwardInstr('nextStep')"
@@ -41,7 +41,7 @@ export default {
   data () {
     return {
       controllerSettings: null,
-      possibleStates: null
+      states: null
     }
   },
   methods: {
@@ -49,7 +49,7 @@ export default {
       this.$refs.activeStage.handle(instr)
     },
     clearData () {
-      this.possibleStates = null
+      this.states = null
     }
   }
 }
@@ -80,32 +80,29 @@ export default {
   overflow: hidden;
 }
 
-#current-name .letter,
+.current-word .letter,
 #possible-states .state,
 .fade-enter-active, .fade-leave-active {
   transition: all calc(var(--delay) * 1ms);
 }
 
-#current-name { display: inline-block; }
-#current-name .letter { display: inline-block; }
-#current-name .letter.in-left-state {
+.word {
+  display: inline-block;
+  margin-right: 2em;
+}
+.current-word .letter { display: inline-block; }
+.current-word .letter.in-left-state {
   color: #edf177;
   font-weight: bold;
 }
-#current-name .letter.in-right-state {
+.current-word .letter.in-right-state {
   color: #90c9f5;
   font-weight: bold;
 }
-#current-name .letter.not-in-left-state + .letter.in-left-state { margin-left: 2em; }
-#current-name .letter.in-left-state + .letter.not-in-left-state { margin-left: 2em; }
-#current-name .letter.in-right-state + .letter.not-in-right-state { margin-left: 1em; }
-
-#stopped-name {
-  display: inline-block;
-  margin-left: 4em;
-
-  opacity: 0.5;
-}
+.current-word .letter.not-in-left-state + .letter.in-left-state { margin-left: 1em; }
+.current-word .letter.in-left-state + .letter.not-in-left-state { margin-left: 1em; }
+.current-word .letter.in-right-state + .letter.not-in-right-state { margin-left: 0.5em; }
+.stopped-word { opacity: 0.5; }
 
 #possible-states .state {
   display: inline-block;

@@ -19,18 +19,21 @@
             >?</span>
           </transition-group>
         </div>
-        <div id="possible-states" class="generator">
-          <transition appear name="fade">
-            <div :key="currentState" class="fade-absolute fade-absolute-right">
-              <span
-                class="state" :key="state"
-                :class="{ selected: i === nextState }"
-                v-for="(state, i) in states[currentState]"
-                :ref="i === nextState ? 'selectedState' : null"
-              >{{ state === '' ? '&lt;END&gt;' : state }}</span>
-            </div>
-          </transition>
-        </div>
+
+        <transition appear name="fade">
+          <div
+            id="possible-states"
+            :key="currentState"
+            class="fade-absolute fade-absolute-right"
+          >
+            <span
+              class="state" :key="state"
+              :class="{ selected: i === nextState }"
+              v-for="(state, i) in states.transitions[currentState]"
+              :ref="i === nextState ? 'selectedState' : null"
+            >{{ state === '' ? '&lt;END&gt;' : state }}</span>
+          </div>
+        </transition>
       </div>
     </transition>
   </div>
@@ -38,6 +41,9 @@
 
 <script>
 let curLoop = 0
+
+// const numWords = () => { Math.floor(Math.random() * 3) + 1 }
+// const wordLength = () => { Math.floor(Math.random() * 7) + 4 }
 
 export default {
   name: 'generator',
@@ -96,7 +102,9 @@ export default {
     },
 
     startName () {
-      const states = Object.keys(this.states)
+      const states = this.settings.strictStarts
+        ? this.states.starts
+        : Object.keys(this.states.transitions)
 
       this.currentName = states[Math.floor(Math.random() * states.length)]
       this.currentStateIndex = 0
@@ -106,7 +114,7 @@ export default {
       this.next()
     },
     selectNextState () {
-      const connectingStates = this.states[this.currentState]
+      const connectingStates = this.states.transitions[this.currentState]
 
       this.nextState = Math.floor(Math.random() * connectingStates.length)
 
@@ -114,7 +122,7 @@ export default {
       this.next()
     },
     useNextState () {
-      const next = this.states[this.currentState][this.nextState]
+      const next = this.states.transitions[this.currentState][this.nextState]
 
       this.nextState = null
 

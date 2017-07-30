@@ -38,6 +38,11 @@
         <button v-else class="btn btn-default" @click="$emit('clearData')">Back to the parser!</button>
       </div>
     </transition>
+
+    <label>
+      <input type="checkbox" v-model="strictStarts"/>
+      <abbr title="Is this how it works?">Strict start</abbr>
+    </label>
   </div>
 </template>
 
@@ -52,18 +57,22 @@ export default {
       speed: 1,
       DELAYS: [2000, 1000, 500, 250, 0],
       playing: true,
+
       stateWidthLeft: 2,
-      stateWidthRight: 2
+      stateWidthRight: 2,
+
+      strictStarts: true
     }
   },
   computed: {
     settings () {
-      const { playing, stateWidthLeft, stateWidthRight } = this.$data
+      const { playing, stateWidthLeft, stateWidthRight, strictStarts } = this.$data
 
       return {
         playing,
         stateWidthLeft,
         stateWidthRight,
+        strictStarts,
         delay: this.DELAYS[this.speed]
       }
     }

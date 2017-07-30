@@ -1,22 +1,27 @@
 <template>
   <div id="parser">
-    <transition v-if="currentName" appear name="fade">
-      <div :key="currentName" class="fade-absolute fade-absolute-top">
-        <div id="current-name" ref="currentName">
-          <span v-for="(letter, i) in currentName"
-            class="letter"
-            :class="{ 'in-left-state': indexInState(i, 'left'),
-                      'not-in-left-state': !indexInState(i, 'left'),
-                      'in-right-state': indexInState(i, 'right'),
-                      'not-in-right-state': !indexInState(i, 'right') }"
-          >{{ letter }}</span>
-          <span class="letter"></span>
-        </div>
-        <transition appear name="fade">
-          <div id="stopped-name">
-            {{ currentStoppedName }}
-          </div>
-        </transition>
+    <transition v-if="currentWord" appear name="fade">
+      <div :key="nameCursor" class="fade-absolute fade-absolute-top">
+        <span
+          v-for="(word, wi) in wordsInCurrentName"
+          :ref="wi === currentWordIndex ? 'currentWord' : null"
+          :class="[wi === currentWordIndex ? 'current-word' : 'stopped-word']"
+          class="word"
+        >
+          <template v-if="wi === currentWordIndex">
+            <span v-for="(letter, i) in currentWord"
+              class="letter"
+              :class="{ 'in-left-state': indexInState(i, 'left'),
+                        'not-in-left-state': !indexInState(i, 'left'),
+                        'in-right-state': indexInState(i, 'right'),
+                        'not-in-right-state': !indexInState(i, 'right') }"
+            >{{ letter }}</span>
+            <span class="letter"></span>
+          </template>
+          <template v-else>
+            {{ word }}
+          </template>
+        </span>
 
         <transition appear name="fade">
           <div
@@ -28,10 +33,10 @@
               appear name="fade"
               @before-enter="moveFromRightState" @after-enter="clearMove"
             >
-              <template v-if="typeof stateTransitions[currentState] !== 'undefined'">
+              <template v-if="typeof transitions[currentState] !== 'undefined'">
                 <span
                   class="state fade-move" :key="state"
-                  v-for="state in stateTransitions[currentState]"
+                  v-for="state in transitions[currentState]"
                 >{{ state === '' ? '&lt;END&gt;' : state }}</span>
               </template>
             </transition-group>
@@ -47,6 +52,7 @@
 let curLoop = 0
 
 const stopWords = [
+  '[^A-Z]',
   'PARTNERSHIP',
   'HOLDINGS',
   'PTY',
@@ -54,8 +60,9 @@ const stopWords = [
   'LIMITED',
   'GROUP',
   'AUSTRALIA',
-  'CORPORATION',
+  'AUSTRALIAN',
   'AUSTRALASIA',
+  'CORPORATION',
   'ASIA',
   'PACIFIC',
   'COMPANY',
@@ -75,23 +82,22 @@ export default {
 
       animated: true,
 
-      stateTransitions: {},
+      starts: [],
+      transitions: {},
 
       nameCursor: -1,
+
+      wordsInCurrentName: null,
+      wordStatus: null,
+      currentWordIndex: -1,
+
       stateCursor: -1
     }
   },
   computed: {
-    currentName () {
-      if (this.nameCursor !== -1 && this.nameCursor < this.data.length) {
-        let name = this.data[this.nameCursor]
-        const match = name.match(stopWordsRe)
-
-        if (match) {
-          name = name.slice(0, name.length - match[0].length)
-        }
-
-        return name.trim().replace(/ /g, '_')
+    currentWord () {
+      if (this.currentWordIndex !== -1) {
+        return this.wordsInCurrentName[this.currentWordIndex]
       }
     },
     currentStoppedName () {
@@ -105,11 +111,11 @@ export default {
       }
     },
     currentState () {
-      if (this.currentName &&
+      if (this.currentWord &&
           this.stateCursor !== -1 &&
-          this.stateCursor + this.settings.stateWidthLeft <= this.currentName.length
+          this.stateCursor + this.settings.stateWidthLeft <= this.currentWord.length
       ) {
-        return this.currentName.slice(this.stateCursor, this.stateCursor + this.settings.stateWidthLeft)
+        return this.currentWord.slice(this.stateCursor, this.stateCursor + this.settings.stateWidthLeft)
       }
     }
   },
@@ -143,19 +149,37 @@ export default {
     },
 
     nextName () {
+      const self = this
+
       while (true) {
         this.nameCursor += 1
 
-        if (this.nameCursor >= this.data.length ||
-            this.currentName.length >= this.settings.stateWidthLeft) {
+        if (this.nameCursor >= this.data.length) {
+          break
+        }
+
+        this.wordsInCurrentName = this.data[this.nameCursor].split(' ')
+          .map(Function.prototype.call, String.prototype.trim)
+
+        if (this.wordsInCurrentName.some(word => {
+          return word.length > this.settings.stateWidthLeft && self.wordIsGood(word)
+        })) {
           break
         }
       }
+
       this.stateCursor = -1
 
       if (this.nameCursor < this.data.length) {
+        this.wordStatus = this.wordsInCurrentName.map(this.wordIsGood)
+        this.currentWordIndex = this.wordStatus.indexOf(true)
+
         this.nextStep = this.nextState
       } else {
+        this.wordsInCurrentName = null
+        this.wordStatus = null
+        this.currentWordIndex = -1
+
         this.nextStep = this.complete
       }
 
@@ -164,7 +188,7 @@ export default {
     nextState () {
       this.stateCursor += 1
 
-      if (this.stateCursor + this.settings.stateWidthLeft > this.currentName.length) {
+      if (this.stateCursor + this.settings.stateWidthLeft > this.currentWord.length) {
         this.nextStep = this.nextName
       } else {
         this.nextStep = this.registerPossibleState
@@ -173,16 +197,20 @@ export default {
       this.next()
     },
     registerPossibleState () {
-      let ts = this.stateTransitions[this.currentState]
+      let ts = this.transitions[this.currentState]
       if (typeof ts === 'undefined') {
-        this.$set(this.stateTransitions, this.currentState, [])
-        ts = this.stateTransitions[this.currentState]
+        this.$set(this.transitions, this.currentState, [])
+        ts = this.transitions[this.currentState]
       }
 
       const pos = this.stateCursor + this.settings.stateWidthLeft
-      ts.push(this.currentName.slice(pos, pos + this.settings.stateWidthRight))
+      ts.push(this.currentWord.slice(pos, pos + this.settings.stateWidthRight))
 
-      if (this.stateCursor !== this.currentName.length - this.settings.stateWidthLeft) {
+      if (this.stateCursor === 0) {
+        this.starts.push(this.currentState)
+      }
+
+      if (this.stateCursor !== this.currentWord.length - this.settings.stateWidthLeft) {
         this.nextStep = this.nextState
       } else {
         this.nextStep = this.nextName
@@ -193,9 +221,15 @@ export default {
     complete () {
       this.nextStep = null
 
-      this.$emit('complete', this.stateTransitions)
+      this.$emit('complete', {
+        starts: this.starts,
+        transitions: this.transitions
+      })
     },
 
+    wordIsGood (word) {
+      return !word.match(stopWordsRe)
+    },
     indexInState (i, lor) {
       const shift = this.stateCursor + (lor === 'left' ? 0 : this.settings.stateWidthLeft)
 
@@ -209,7 +243,7 @@ export default {
     },
     moveFromRightState (el) {
       const i = this.stateCursor + this.settings.stateWidthLeft
-      const letter = this.$refs.currentName.querySelectorAll('.letter')[i]
+      const letter = this.$refs.currentWord[0].querySelectorAll('.letter')[i]
 
       const srcPos = letter.getBoundingClientRect()
       const tarPos = this.$refs.possibleStatePlaceholder.getBoundingClientRect()
@@ -233,9 +267,15 @@ export default {
       this.animated = true
       this.playing = true
 
-      this.stateTransitions = {}
+      this.starts = []
+      this.transitions = {}
 
       this.nameCursor = -1
+
+      this.wordsInCurrentName = null
+      this.wordStatus = null
+      this.currentWordIndex = -1
+
       this.stateCursor = -1
 
       this.next()
