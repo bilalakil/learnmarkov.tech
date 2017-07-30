@@ -96,6 +96,9 @@ export default {
 </script>
 
 <style>
+.btn {
+  cursor: pointer;
+}
 .btn-column {
   display: flex;
   flex-direction: column;
