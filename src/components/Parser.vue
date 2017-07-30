@@ -22,27 +22,27 @@
             {{ word }}
           </template>
         </span>
-
-        <transition appear name="fade">
-          <div
-            id="possible-states"
-            :key="currentState"
-            class="fade-absolute fade-absolute-right"
-          >
-            <transition-group
-              appear name="fade"
-              @before-enter="moveFromRightState" @after-enter="clearMove"
+        <div id="possible-states">
+          <transition appear name="fade">
+            <div
+              :key="currentState"
+              class="fade-absolute fade-absolute-right"
             >
-              <template v-if="typeof transitions[currentState] !== 'undefined'">
-                <span
-                  class="state fade-move" :key="state"
-                  v-for="state in transitions[currentState]"
-                >{{ state === '' ? '&lt;END&gt;' : state }}</span>
-              </template>
-            </transition-group>
-            <span class="state placeholder" ref="possibleStatePlaceholder"></span>
-          </div>
-        </transition>
+              <transition-group
+                appear name="fade"
+                @before-enter="moveFromRightState" @after-enter="clearMove"
+              >
+                <template v-if="typeof transitions[currentState] !== 'undefined'">
+                  <span
+                    class="state fade-move" :key="state"
+                    v-for="state in transitions[currentState]"
+                  >{{ state === '' ? '&lt;END&gt;' : state }}</span>
+                </template>
+              </transition-group>
+              <span class="state placeholder" ref="possibleStatePlaceholder"></span>
+            </div>
+          </transition>
+        </div>
       </div>
     </transition>
   </div>

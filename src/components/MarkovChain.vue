@@ -63,7 +63,7 @@ export default {
   height: 100%;
 }
 
-#current-name, #stopped-name, #possible-states {
+#current-name, #stopped-name, #possible-states, .word {
   font-family: 'Droid Sans Mono', monospace;
   font-size: 20px;
 }
