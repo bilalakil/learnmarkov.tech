@@ -66,6 +66,11 @@ export default {
 #current-name, #stopped-name, #possible-states, .word {
   font-family: 'Droid Sans Mono', monospace;
   font-size: 20px;
+  transition: font-size 1s;
+}
+
+#current-name.finished {
+  font-size: 28px;
 }
 
 #possible-states {

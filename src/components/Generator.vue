@@ -2,7 +2,10 @@
   <div id="generator">
     <transition v-if="currentName" appear name="fade">
       <div class="fade-absolute fade-absolute-top">
-        <div id="current-name">
+        <div 
+          id="current-name"
+          :class="{ 'finished': complete }"
+        >
           <transition-group name="fade"
             @before-enter="moveToRightState" @after-enter="clearMove"
           >
