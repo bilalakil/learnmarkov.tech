@@ -1,6 +1,6 @@
 <template>
   <div id="markov-chain" :style="{ '--delay': controllerSettings ? controllerSettings.delay : 1000 }">
-    <div className="padder"></div>
+    <div class="padder"></div>
     <transition v-if="controllerSettings">
       <parser ref="activeStage" v-if="!states"
         :settings="controllerSettings"
@@ -59,8 +59,12 @@ export default {
 #markov-chain {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
   height: 100%;
+}
+
+#parser, #generator {
+  height: 50%;
 }
 
 #current-name, #stopped-name, #possible-states, .word {
@@ -69,7 +73,7 @@ export default {
   transition: font-size 1s;
 }
 
-#current-name.finished .word {
+#current-name .finished .word {
   font-size: 28px;
 }
 
@@ -94,7 +98,7 @@ export default {
 
 .word {
   display: inline-block;
-  margin-right: 2em;
+  margin-right: 20px;
 }
 .current-word .letter { display: inline-block; }
 .current-word .letter.in-left-state {
@@ -105,14 +109,18 @@ export default {
   color: #90c9f5;
   font-weight: bold;
 }
-.current-word .letter.not-in-left-state + .letter.in-left-state { margin-left: 1em; }
-.current-word .letter.in-left-state + .letter.not-in-left-state { margin-left: 1em; }
-.current-word .letter.in-right-state + .letter.not-in-right-state { margin-left: 0.5em; }
+.current-word .letter.not-in-left-state + .letter.in-left-state { margin-left: 5px; }
+.current-word .letter.in-left-state + .letter.not-in-left-state { margin-left: 5px; }
+.current-word .letter.in-right-state + .letter.not-in-right-state { margin-left: 5px; }
 .stopped-word { opacity: 0.5; }
+
+#generator .placeholder {
+  margin-left: -30px;
+}
 
 #possible-states .state {
   display: inline-block;
-  margin-right: 2em;
+  margin-right: 20px;
 }
 #possible-states .state.selected {
   color: #fd8383;
@@ -120,16 +128,19 @@ export default {
   font-size: 20px;
 }
 
-.fade-absolute-container { position: relative; }
-.fade-absolute.fade-leave-active {
-  position: absolute;
+.fade-absolute-container {
+  position: relative;
 
   width: 100%;
 }
 
+.fade-absolute.v-enter-active, .fade-absolute.v-leave-active { width: 100%; }
+.fade-absolute.v-enter-active, .fade-absolute.v-leave-active,
+.fade-move.v-enter-active, .fade-move.v-leave-active { position: absolute; }
+
 .v-enter, .v-leave-to { opacity: 0; }
-.fade-absolute-top.v-enter { transform: translateX(-2em); }
-.fade-absolute-top.v-leave-to { transform: translateX(2em); }
+.fade-absolute-top.v-enter { transform: translateY(2em); }
+.fade-absolute-top.v-leave-to { transform: translateY(-2em); }
 .fade-absolute-right.v-enter { transform: translateX(-4em); }
 .fade-absolute-right.v-leave-to { transform: translateX(4em); }
 .fade-move { transform: translate(calc(var(--moveX) * 1px), calc(var(--moveY) * 1px)); }

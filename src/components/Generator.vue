@@ -1,46 +1,64 @@
 <template>
-  <div id="generator" class="fade-absolute-container">
-    <transition v-if="currentWord" appear>
-      <div class="fade-absolute fade-absolute-top">
+  <div id="generator">
+    <div v-if="currentWord" id="current-name">
+      <transition appear>
         <div
-          id="current-name"
           :class="{ 'finished': complete }"
         >
-          <span v-for="word in wordsInCurrentName" class="word">
-            <transition-group>
+          <span
+            v-for="(word, wi) in wordsInCurrentName"
+            class="word"
+            :class="{ 'stopped-word': hasBusinessWord && wi === wordsInCurrentName.length - 1 }"
+          >
+            <transition-group appear>
               <span v-for="(letter, i) in word"
                 :key="i" :data-key="i"
-                class="letter fade-move"
+                class="letter"
                 :class="{ 'in-left-state': indexInState(i),
                           'not-in-left-state': !indexInState(i) }"
               >{{ letter }}</span>
-              <span key="placeholder"
-                v-if="!complete"
-                class="letter not-in-left-state in-right-state"
-                ref="nextStatePlaceholder"
-              >?</span>
             </transition-group>
           </span>
         </div>
-        <div id="possible-states" class="fade-absolute-container">
-          <transition appear>
-            <div :key="currentState" class="fade-absolute fade-absolute-right">
+      </transition>
+
+      <div
+        v-if="currentState" id="possible-states"
+        class="fade-absolute-container"
+      >
+        <transition appear>
+          <div
+            :key="currentState"
+            class="fade-absolute fade-absolute-right"
+          >
+            <transition-group
+              appear
+            >
               <span
-              class="state" :key="state"
-              :class="{ selected: i === nextState }"
-              v-for="(state, i) in states.transitions[currentState]"
-              :ref="i === nextState ? 'selectedState' : null"
-            >{{ state === '' ? '&lt;END&gt;' : state }}</span>
-            </div>
-          </transition>
-        </div>
+                class="state" :key="currentState + i"
+                :class="{ selected: i === nextState }"
+                v-for="(state, i) in states.transitions[currentState]"
+                :ref="i === nextState ? 'selectedState' : null"
+              >{{ state }}</span>
+            </transition-group>
+          </div>
+        </transition>
       </div>
-    </transition>
+    </div>
   </div>
 </template>
 
 <script>
 let curLoop = 0
+
+const businessWords = [
+  'LIMITED',
+  'PTY LTD',
+  'CORPORATION',
+  'HOLDINGS',
+  'INTERNATIONAL',
+  'GROUP'
+]
 
 const randNumWords = () => Math.floor(Math.random() * 3) + 1
 const randWordLength = () => Math.floor(Math.random() * 7) + 4
@@ -56,7 +74,8 @@ const getDefaultData = function () {
     currentStateIndex: -1,
     stateLengthLeft: null,
     nextState: null,
-    complete: false
+    complete: false,
+    hasBusinessWord: false
   }
 }
 
@@ -135,10 +154,6 @@ export default {
     selectNextState () {
       const connectingStates = this.states.transitions[this.currentState]
 
-      if (this.currentWord.length >= this.targetWordLength) {
-        this.startWord()
-        return
-      }
       if (!connectingStates) {
         this.finish()
         return
@@ -156,7 +171,12 @@ export default {
 
       this.wordsInCurrentName.splice(this.wordsInCurrentName.length - 1, 1, this.currentWord + next)
 
-      this.nextStep = this.advanceCurrentState
+      if (this.currentWord.length >= this.targetWordLength) {
+        this.nextStep = this.prepareForNextWord
+      } else {
+        this.nextStep = this.advanceCurrentState
+      }
+
       this.next()
     },
     advanceCurrentState () {
@@ -165,7 +185,18 @@ export default {
       this.nextStep = this.selectNextState
       this.next()
     },
+    prepareForNextWord () {
+      this.currentStateIndex = -1
+
+      this.nextStep = this.startWord
+      this.next()
+    },
     finish () {
+      if (Math.random() >= 0.5) {
+        this.wordsInCurrentName.push(businessWords[Math.floor(Math.random() * businessWords.length)])
+        this.hasBusinessWord = true
+      }
+
       this.currentStateIndex = -1
       this.complete = true
 

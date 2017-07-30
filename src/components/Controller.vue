@@ -20,7 +20,7 @@
     </div>
 
     <div class="col">
-      <transition name="fade">
+      <transition mode="out-in">
         <div class="row" v-if="mode === 'parser'">
           <div class="col">
             <label class="control-label" for="stateWidthLeft">Left</label>
@@ -31,22 +31,25 @@
             <input class="form-control" type="number" name="stateWidthRight" v-model.number="stateWidthRight" min="1" max="6"/>
           </div>
         </div>
+        <label v-else>
+          <input type="checkbox" v-model="strictStarts"/>
+          <abbr title="Only generate words with letters that generally start words">Strict start</abbr>
+        </label>
       </transition>
     </div>
 
-    <transition name="fade">
-      <div v-if="mode === 'parser'" class="col btn-column">
-        <button class="btn btn-primary" @click="$emit('stopAnimation')">On to name generation!</button>
-      </div>
-      <div v-else class="col btn-column">
-        <button class="btn btn-default" @click="$emit('clearData')">Back to the parser!</button>
-      </div>
-    </transition>
-
-    <label>
-      <input type="checkbox" v-model="strictStarts"/>
-      <abbr title="Only generate words with letters that generally start words">Strict start</abbr>
-    </label>
+    <div class="col btn-column">
+      <transition>
+        <button v-if="mode === 'parser'"
+          class="btn btn-primary"
+          @click="$emit('stopAnimation')"
+        >Parse everything!</button>
+        <button v-else
+          class="btn btn-default"
+          @click="$emit('clearData')"
+        >Back to the parser!</button>
+      </transition>
+    </div>
   </div>
 </template>
 
@@ -93,9 +96,12 @@ export default {
 </script>
 
 <style>
-  .btn-column {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
+.btn-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.col {
+  margin-bottom: 10px;
+}
 </style>

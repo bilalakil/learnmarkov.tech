@@ -26,7 +26,7 @@
 </template>
 
 <script>
-// import { shuffle } from 'lodash'
+import { shuffle } from 'lodash'
 import MarkovChain from './components/MarkovChain'
 import HelpModal from './components/HelpModal'
 
@@ -51,8 +51,7 @@ export default {
       req.open('GET', path)
       req.onload = () => {
         if (req.status === 200) {
-          // self.data = shuffle(req.response.split('\n'))
-          self.data = req.response.split('\n')
+          self.data = shuffle(req.response.split('\n'))
         } else {
           err()
         }
@@ -68,9 +67,9 @@ export default {
 </script>
 
 <style>
- /*
- * Globals
- */
+/*
+* Globals
+*/
 
 /* Links */
 a,
@@ -88,7 +87,6 @@ a:hover {
   background-color: #fff;
   border: .05rem solid #fff;
 }
-
 
 /*
  * Base structure
@@ -127,7 +125,6 @@ body {
 .inner {
   padding: 2rem;
 }
-
 
 /*
  * Header
@@ -172,7 +169,6 @@ body {
   }
 }
 
-
 /*
  * Cover
  */
@@ -193,7 +189,12 @@ body {
 .mastfoot {
   color: rgba(255,255,255,.5);
 }
-
+.mastfoot .inner {
+  padding-top: 0;
+}
+.mastfoot p {
+  margin-bottom: 0;
+}
 
 /*
  * Affix and center
@@ -232,8 +233,6 @@ body {
 .loading .fa-spinner {
   font-size: 48px;
   animation: spin 1.5s linear infinite;
-
-
 }
 
 @-moz-keyframes spin {

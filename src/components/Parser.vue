@@ -1,56 +1,62 @@
 <template>
-  <div id="parser" class="fade-absolute-container">
-    <transition v-if="currentWord" appear>
-      <div :key="nameCursor" class="fade-absolute fade-absolute-top">
-        <span ref="word"
-          v-for="(word, wi) in wordsInCurrentName"
-          :class="{ 'current-word': wi === currentWordIndex,
-                    'stopped-word': !wordStatus[wi] }"
-          class="word"
-        >
-          <template v-if="wordStatus[wi]">
-            <span v-for="(letter, i) in word"
-              class="letter"
-              :class="{ 'in-left-state': indexInState(wi, i, 'left'),
-                        'not-in-left-state': !indexInState(wi, i, 'left'),
-                        'in-right-state': indexInState(wi, i, 'right'),
-                        'not-in-right-state': !indexInState(wi, i, 'right') }"
-            >{{ letter }}</span>
-            <span class="letter"></span>
-          </template>
-          <template v-else>
-            {{ word }}
-          </template>
-        </span>
-
+  <div id="parser">
+    <div v-if="currentWord" id="current-name" class="fade-absolute-container">
+      <transition appear>
         <div
-          id="possible-states" class="fade-absolute-container"
-          v-if="stateCursor + settings.stateWidthLeft !== currentWord.length"
+          class="fade-absolute fade-absolute-top"
+          :key="nameCursor"
         >
-          <transition appear>
-            <div
-              :key="currentState"
-              class="fade-absolute fade-absolute-right"
-            >
-              <transition-group
-                appear
-                @before-enter="moveFromRightState" @after-enter="clearMove"
-              >
-                <template v-if="typeof transitions[currentState] !== 'undefined'">
-                  <span
-                    class="state fade-move" :key="state"
-                    v-for="(state, i) in transitions[currentState]"
-                    key="i"
-                    :data-key="i"
-                  >{{ state }}</span>
-                </template>
-              </transition-group>
-              <span class="state placeholder" ref="possibleStatePlaceholder"></span>
-            </div>
-          </transition>
+          <span ref="word" :key="wi"
+            v-for="(word, wi) in wordsInCurrentName"
+            :class="{ 'current-word': wi === currentWordIndex,
+                      'stopped-word': !wordStatus[wi] }"
+            class="word"
+          >
+            <template v-if="wordStatus[wi]">
+              <span v-for="(letter, i) in word"
+                class="letter"
+                :class="{ 'in-left-state': indexInState(wi, i, 'left'),
+                          'not-in-left-state': !indexInState(wi, i, 'left'),
+                          'in-right-state': indexInState(wi, i, 'right'),
+                          'not-in-right-state': !indexInState(wi, i, 'right') }"
+              >{{ letter }}</span>
+              <span class="letter"></span>
+            </template>
+            <template v-else>
+              {{ word }}
+            </template>
+          </span>
         </div>
-      </div>
-    </transition>
+      </transition>
+    </div>
+
+    <div
+      id="possible-states"
+      class="fade-absolute-container"
+      v-if="currentWord && stateCursor + settings.stateWidthLeft !== currentWord.length"
+    >
+      <transition appear>
+        <div
+          :key="currentState"
+          class="fade-absolute fade-absolute-right"
+        >
+          <transition-group
+            appear
+            @before-enter="moveFromRightState" @after-enter="clearMove"
+          >
+            <template v-if="typeof transitions[currentState] !== 'undefined'">
+              <span
+                class="state fade-move" :key="currentState + i"
+                v-for="(state, i) in transitions[currentState]"
+                key="i"
+                :data-key="i"
+              >{{ state }}</span>
+            </template>
+            <span key="placeholder" class="state placeholder" ref="possibleStatePlaceholder"></span>
+          </transition-group>
+        </div>
+      </transition>
+    </div>
   </div>
 </template>
 
@@ -269,8 +275,8 @@ export default {
       const srcPos = letter.getBoundingClientRect()
       const tarPos = placeholder.getBoundingClientRect()
 
-      el.style.setProperty('--moveX', srcPos.left - tarPos.left + 40)
-      el.style.setProperty('--moveY', srcPos.bottom - tarPos.top + 20)
+      el.style.setProperty('--moveX', srcPos.left - tarPos.left)
+      el.style.setProperty('--moveY', srcPos.bottom - tarPos.top)
     },
     clearMove (el) {
       el.style.removeProperty('--moveX')
