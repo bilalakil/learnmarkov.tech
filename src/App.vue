@@ -16,7 +16,10 @@
         </div>
         <div class="mastfoot">
           <div class="inner">
-            <p>Created by The Three Markovs for GovHack 2017</p>
+            <p>
+              Created by The Three Markovs for GovHack 2017<br/>
+              <a href="https://github.com/bilalakil/learnmarkov.tech">See on GitHub</a>
+            </p>
           </div>
         </div>
       </div>

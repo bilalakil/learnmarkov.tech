@@ -1,6 +1,16 @@
 # learnmarkov.tech
 
-> A Vue.js project
+A Vue.js project that attempts to visually describe how Markov Chains work, in the form of a business name generator. It utilises almost 2,000 business names from the [ASIC Company Dataset](https://data.gov.au/dataset/asic-companies) in doing so.
+
+This project was created as a part of GovHack 2017, and won the Code for the Classroom award. [Here's the submission page and video.](https://2017.hackerspace.govhack.org/project/learnmarkovtech)
+
+Our team, The Three Markovs, was comprised of:
+
+- [Christian Kiely](https://github.com/ckiely91)
+- [Daniel Bergamin](https://github.com/danielbergamin)
+- [Bilal Akil](https://github.com/bilalakil)
+
+We're no longer paying for the learnmarkov.tech domain, but you can still view the website at [learnmarkov.netlify.com](https://learnmarkov.netlify.com) - cheers to Netlify for free open source hosting!
 
 ## Build Setup
 
