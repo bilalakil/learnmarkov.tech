@@ -10,7 +10,7 @@ Our team, The Three Markovs, was comprised of:
 - [Daniel Bergamin](https://github.com/danielbergamin)
 - [Bilal Akil](https://github.com/bilalakil)
 
-We're no longer paying for the learnmarkov.tech domain, but you can still view the website at [learnmarkov.netlify.com](https://learnmarkov.netlify.com) - cheers to Netlify for free open source hosting!
+We're no longer paying for the learnmarkov.tech domain, but you can still view the website at [learnmarkov.netlify.app](https://learnmarkov.netlify.app) - cheers to Netlify for free open source hosting!
 
 ## Build Setup
 
